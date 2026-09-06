@@ -36,9 +36,7 @@ const config: runtime.GetPrismaClientConfig = {
         "native": true
       }
     ],
-    "previewFeatures": [
-      "driverAdapters"
-    ],
+    "previewFeatures": [],
     "sourceFilePath": "C:\\Users\\Administrator\\sarisari-pos\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
@@ -58,8 +56,8 @@ const config: runtime.GetPrismaClientConfig = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider        = \"prisma-client\"\n  output          = \"../src/generated/prisma\"\n  previewFeatures = [\"driverAdapters\"]\n}\n\ndatasource db {\n  provider = \"mysql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nenum PaymentMethod {\n  CASH\n  GCASH\n}\n\nmodel Product {\n  id                Int        @id @default(autoincrement())\n  name              String\n  unit              String\n  price             Decimal    @db.Decimal(10, 2)\n  stockQuantity     Int        @default(0)\n  lowStockThreshold Int        @default(5)\n  createdAt         DateTime   @default(now())\n  updatedAt         DateTime   @updatedAt\n  saleItems         SaleItem[]\n}\n\nmodel Sale {\n  id            Int           @id @default(autoincrement())\n  totalAmount   Decimal       @db.Decimal(10, 2)\n  paymentMethod PaymentMethod\n  createdAt     DateTime      @default(now())\n  items         SaleItem[]\n}\n\nmodel SaleItem {\n  id                Int     @id @default(autoincrement())\n  sale              Sale    @relation(fields: [saleId], references: [id])\n  saleId            Int\n  product           Product @relation(fields: [productId], references: [id])\n  productId         Int\n  quantity          Int\n  unitPriceSnapshot Decimal @db.Decimal(10, 2)\n  subtotal          Decimal @db.Decimal(10, 2)\n}\n",
-  "inlineSchemaHash": "f0bf8d2b275ef0141d0ecd63fc51ed76e17c57c8961a3777680abc05d7d6ecf1",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"../src/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"mysql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nenum PaymentMethod {\n  CASH\n  GCASH\n}\n\nmodel Product {\n  id                Int        @id @default(autoincrement())\n  name              String\n  unit              String\n  price             Decimal    @db.Decimal(10, 2)\n  stockQuantity     Int        @default(0)\n  lowStockThreshold Int        @default(5)\n  createdAt         DateTime   @default(now())\n  updatedAt         DateTime   @updatedAt\n  saleItems         SaleItem[]\n}\n\nmodel Sale {\n  id            Int           @id @default(autoincrement())\n  totalAmount   Decimal       @db.Decimal(10, 2)\n  paymentMethod PaymentMethod\n  createdAt     DateTime      @default(now())\n  items         SaleItem[]\n}\n\nmodel SaleItem {\n  id                Int     @id @default(autoincrement())\n  sale              Sale    @relation(fields: [saleId], references: [id])\n  saleId            Int\n  product           Product @relation(fields: [productId], references: [id])\n  productId         Int\n  quantity          Int\n  unitPriceSnapshot Decimal @db.Decimal(10, 2)\n  subtotal          Decimal @db.Decimal(10, 2)\n}\n",
+  "inlineSchemaHash": "5c4143b0e7cdc6eb03f4159265bbf99572337abdba349137c3ffcff454471ddd",
   "copyEngine": true,
   "runtimeDataModel": {
     "models": {},
