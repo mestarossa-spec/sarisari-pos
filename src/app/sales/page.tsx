@@ -1,59 +1,74 @@
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 
 export default async function SalesHistoryPage() {
   const sales = await prisma.sale.findMany({
     orderBy: { createdAt: "desc" },
     include: {
-      items: {
-        include: { product: true },
-      },
+      items: { include: { product: true } },
     },
   });
 
   return (
-    <div className="p-8">
-      <h1 className="mb-4 text-xl font-semibold">Sales History</h1>
+    <div className="min-h-screen bg-stone-50 p-4 max-w-2xl mx-auto space-y-4">
+      <div className="flex items-center gap-2">
+        <Link href="/" className="text-stone-500 p-1 text-lg">←</Link>
+        <h1 className="text-xl font-bold text-stone-900">Sales History</h1>
+      </div>
 
       {sales.length === 0 && (
-        <p className="text-sm text-gray-500">No sales recorded yet.</p>
+        <p className="text-sm text-stone-400">No sales recorded yet.</p>
       )}
 
-      <div className="flex flex-col gap-4">
+      <div className="space-y-3">
         {sales.map((sale) => (
-          <div key={sale.id} className="rounded border p-4">
-            <div className="mb-2 flex items-center justify-between">
-              <div>
-                <div className="font-medium">
-                  {sale.createdAt.toLocaleString("en-PH", {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                  })}
+          <details key={sale.id} className="bg-white border border-stone-200 rounded-2xl p-4 shadow-sm group">
+            <summary className="flex justify-between items-center cursor-pointer list-none">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-xs px-2 py-0.5 font-semibold rounded-md ${
+                      sale.paymentMethod === "CASH"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-sky-100 text-sky-800"
+                    }`}
+                  >
+                    {sale.paymentMethod === "CASH" ? "Cash" : "GCash"}
+                  </span>
+                  <span className="text-xs text-stone-400">
+                    {sale.createdAt.toLocaleString("en-PH", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
+                  </span>
                 </div>
-                <div className="text-sm text-gray-500">
-                  Payment: {sale.paymentMethod}
-                </div>
+                <p className="text-sm text-stone-500">
+                  {sale.items.length} {sale.items.length === 1 ? "item" : "items"} sold
+                </p>
               </div>
-              <div className="text-lg font-semibold">
-                ₱{Number(sale.totalAmount).toFixed(2)}
+              <div className="text-right">
+                <span className="text-base font-bold text-stone-900 block">
+                  ₱{Number(sale.totalAmount).toFixed(2)}
+                </span>
+                <span className="text-xs text-amber-700 font-semibold group-open:rotate-180 inline-block transition-transform">
+                  ▼
+                </span>
               </div>
-            </div>
+            </summary>
 
-            <table className="w-full text-sm">
-              <tbody>
-                {sale.items.map((item) => (
-                  <tr key={item.id} className="border-t">
-                    <td className="py-1">{item.product.name}</td>
-                    <td className="py-1 text-gray-500">
-                      {item.quantity} × ₱{Number(item.unitPriceSnapshot).toFixed(2)}
-                    </td>
-                    <td className="py-1 text-right">
-                      ₱{Number(item.subtotal).toFixed(2)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+            <div className="mt-3 pt-3 border-t border-stone-100 space-y-2 text-xs text-stone-600">
+              {sale.items.map((item) => (
+                <div key={item.id} className="flex justify-between">
+                  <span>
+                    {item.quantity}x {item.product.name}
+                  </span>
+                  <span className="font-semibold text-stone-900">
+                    ₱{Number(item.subtotal).toFixed(2)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </details>
         ))}
       </div>
     </div>

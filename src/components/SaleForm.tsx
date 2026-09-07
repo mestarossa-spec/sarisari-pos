@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createSale } from "@/lib/actions/sales";
 
 type Product = {
@@ -24,9 +25,14 @@ type CartLine = {
 export default function SaleForm({ products }: { products: Product[] }) {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "GCASH">("CASH");
+  const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
+
+  const filteredProducts = products.filter((p) =>
+    p.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   function addToCart(product: Product) {
     setError(null);
@@ -54,20 +60,26 @@ export default function SaleForm({ products }: { products: Product[] }) {
     });
   }
 
-  function updateQuantity(productId: number, quantity: number) {
+  function incrementQuantity(productId: number) {
+    setCart((prev) =>
+      prev.map((line) =>
+        line.productId === productId && line.quantity < line.maxStock
+          ? { ...line, quantity: line.quantity + 1 }
+          : line
+      )
+    );
+  }
+
+  function decrementQuantity(productId: number) {
     setCart((prev) =>
       prev
         .map((line) =>
           line.productId === productId
-            ? { ...line, quantity: Math.min(quantity, line.maxStock) }
+            ? { ...line, quantity: line.quantity - 1 }
             : line
         )
         .filter((line) => line.quantity > 0)
     );
-  }
-
-  function removeFromCart(productId: number) {
-    setCart((prev) => prev.filter((line) => line.productId !== productId));
   }
 
   const total = cart.reduce((sum, line) => sum + line.price * line.quantity, 0);
@@ -92,81 +104,120 @@ export default function SaleForm({ products }: { products: Product[] }) {
   }
 
   return (
-    <div className="flex gap-8">
-      <div className="grid flex-1 grid-cols-3 gap-3">
-        {products.map((product) => (
-          <button
-            key={product.id}
-            onClick={() => addToCart(product)}
-            className="rounded border p-3 text-left hover:bg-gray-50"
-          >
-            <div className="font-medium">{product.name}</div>
-            <div className="text-sm text-gray-500">
-              ₱{product.price.toFixed(2)} / {product.unit}
-            </div>
-            <div className="text-xs text-gray-400">Stock: {product.stockQuantity}</div>
-          </button>
-        ))}
+    <div className="min-h-screen bg-stone-100 flex flex-col md:flex-row md:h-screen">
+      <div className="flex-1 p-3 overflow-y-auto space-y-3">
+        <div className="flex items-center gap-2">
+          <Link href="/" className="text-stone-500 p-1 text-lg">←</Link>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search products..."
+            className="w-full h-12 px-4 rounded-xl border border-stone-300 bg-white shadow-sm outline-none focus:ring-2 focus:ring-amber-600"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
+          {filteredProducts.map((product) => (
+            <button
+              key={product.id}
+              onClick={() => addToCart(product)}
+              disabled={product.stockQuantity === 0}
+              className="bg-white border border-stone-200 p-3 rounded-xl text-left active:bg-amber-50 active:border-amber-600 flex flex-col justify-between h-24 shadow-sm disabled:opacity-40"
+            >
+              <span className="font-semibold text-sm text-stone-800 line-clamp-2">
+                {product.name}
+              </span>
+              <div className="flex justify-between items-end w-full">
+                <span className="text-xs text-stone-400">{product.unit}</span>
+                <span className="font-bold text-amber-700">₱{product.price.toFixed(2)}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {filteredProducts.length === 0 && (
+          <p className="text-sm text-stone-400 text-center py-8">No products match your search.</p>
+        )}
       </div>
 
-      <div className="w-80 shrink-0 rounded border p-4">
-        <h2 className="mb-3 font-semibold">Cart</h2>
+      <div className="w-full md:w-96 bg-white border-t md:border-t-0 md:border-l border-stone-200 flex flex-col justify-between p-4 shadow-lg">
+        <div className="space-y-3 overflow-y-auto">
+          <h2 className="font-bold text-stone-900 border-b border-stone-100 pb-2">Current Cart</h2>
 
-        {cart.length === 0 && (
-          <p className="text-sm text-gray-500">No items yet — click a product.</p>
-        )}
+          {cart.length === 0 && (
+            <p className="text-sm text-stone-400 py-4">No items yet — tap a product.</p>
+          )}
 
-        {cart.map((line) => (
-          <div key={line.productId} className="mb-2 flex items-center justify-between gap-2 text-sm">
-            <div className="flex-1">
-              <div>{line.name}</div>
-              <div className="text-gray-500">
-                ₱{line.price.toFixed(2)} × {line.quantity} = ₱{(line.price * line.quantity).toFixed(2)}
+          {cart.map((line) => (
+            <div key={line.productId} className="flex justify-between items-center text-sm">
+              <div>
+                <p className="font-semibold text-stone-800">{line.name}</p>
+                <p className="text-xs text-stone-400">
+                  ₱{line.price.toFixed(2)} x {line.quantity}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => decrementQuantity(line.productId)}
+                  className="w-8 h-8 rounded-lg bg-stone-100 font-bold text-stone-700"
+                >
+                  −
+                </button>
+                <span className="font-bold text-stone-900 w-4 text-center">{line.quantity}</span>
+                <button
+                  onClick={() => incrementQuantity(line.productId)}
+                  disabled={line.quantity >= line.maxStock}
+                  className="w-8 h-8 rounded-lg bg-stone-100 font-bold text-stone-700 disabled:opacity-40"
+                >
+                  +
+                </button>
               </div>
             </div>
-            <input
-              type="number"
-              min={1}
-              max={line.maxStock}
-              value={line.quantity}
-              onChange={(e) => updateQuantity(line.productId, parseInt(e.target.value, 10) || 0)}
-              className="w-14 rounded border px-1 py-0.5"
-            />
-            <button onClick={() => removeFromCart(line.productId)} className="text-red-600">
-              ✕
-            </button>
+          ))}
+        </div>
+
+        <div className="pt-4 border-t border-stone-200 space-y-3">
+          <div className="flex justify-between items-end">
+            <span className="text-sm text-stone-500">Total Amount</span>
+            <span className="text-2xl font-black text-stone-900 tabular-nums">
+              ₱{total.toFixed(2)}
+            </span>
           </div>
-        ))}
 
-        <div className="mt-4 border-t pt-3 font-semibold">Total: ₱{total.toFixed(2)}</div>
-
-        <div className="mt-3">
-          <label className="mb-1 block text-sm font-medium">Payment Method</label>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => setPaymentMethod("CASH")}
-              className={`flex-1 rounded border px-3 py-2 ${paymentMethod === "CASH" ? "bg-black text-white" : ""}`}
+              className={`h-11 rounded-xl text-sm font-bold border-2 ${
+                paymentMethod === "CASH"
+                  ? "border-emerald-600 bg-emerald-50 text-emerald-800"
+                  : "border-stone-200 bg-white text-stone-600"
+              }`}
             >
-              Cash
+              💵 Cash
             </button>
             <button
               onClick={() => setPaymentMethod("GCASH")}
-              className={`flex-1 rounded border px-3 py-2 ${paymentMethod === "GCASH" ? "bg-black text-white" : ""}`}
+              className={`h-11 rounded-xl text-sm font-bold border-2 ${
+                paymentMethod === "GCASH"
+                  ? "border-sky-600 bg-sky-50 text-sky-800"
+                  : "border-stone-200 bg-white text-stone-600"
+              }`}
             >
-              GCash
+              🟦 GCash
             </button>
           </div>
+
+          {error && <p className="text-sm text-rose-600">{error}</p>}
+
+          <button
+            onClick={handleSubmit}
+            disabled={cart.length === 0 || submitting}
+            className="w-full h-14 bg-emerald-600 active:bg-emerald-700 text-white font-bold text-lg rounded-xl shadow-md disabled:opacity-50"
+          >
+            {submitting ? "Processing..." : "Complete Sale"}
+          </button>
         </div>
-
-        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
-
-        <button
-          onClick={handleSubmit}
-          disabled={cart.length === 0 || submitting}
-          className="mt-4 w-full rounded bg-black px-4 py-2 text-white disabled:opacity-50"
-        >
-          {submitting ? "Processing..." : "Complete Sale"}
-        </button>
       </div>
     </div>
   );

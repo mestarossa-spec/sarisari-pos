@@ -1,18 +1,85 @@
 import { createProduct } from "@/lib/actions/products";
+import Link from "next/link";
 
 export default function NewProductPage() {
   return (
-    <div className="p-8">
-      <h1 className="mb-4 text-xl font-semibold">Add Product</h1>
-      <form action={createProduct} className="flex max-w-sm flex-col gap-3">
-        <input name="name" placeholder="Name" className="rounded border px-3 py-2" required />
-        <input name="unit" placeholder="Unit (e.g. pc, sachet)" className="rounded border px-3 py-2" required />
-        <input name="price" type="number" step="0.01" placeholder="Price" className="rounded border px-3 py-2" required />
-        <input name="stockQuantity" type="number" placeholder="Starting stock" className="rounded border px-3 py-2" required />
-        <input name="lowStockThreshold" type="number" placeholder="Low stock alert level" defaultValue={5} className="rounded border px-3 py-2" required />
-        <button type="submit" className="rounded bg-black px-4 py-2 text-white">
-          Save Product
-        </button>
+    <div className="min-h-screen bg-stone-50 p-4 max-w-lg mx-auto space-y-4">
+      <div className="flex items-center gap-2">
+        <Link href="/products" className="text-stone-500 p-1">←</Link>
+        <h1 className="text-xl font-bold text-stone-900">Add New Product</h1>
+      </div>
+
+      <form action={createProduct} className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm space-y-4">
+        <div>
+          <label className="block text-xs font-bold uppercase text-stone-600 mb-1">Product Name</label>
+          <input
+            name="name"
+            type="text"
+            required
+            placeholder="e.g. Coca-Cola Original"
+            className="w-full h-12 px-4 rounded-xl border border-stone-300 focus:ring-2 focus:ring-amber-600 outline-none text-stone-900"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-bold uppercase text-stone-600 mb-1">Unit</label>
+            <input
+              name="unit"
+              type="text"
+              required
+              placeholder="e.g. Bottle, Pack, Sachet"
+              className="w-full h-12 px-4 rounded-xl border border-stone-300 focus:ring-2 focus:ring-amber-600 outline-none text-stone-900"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold uppercase text-stone-600 mb-1">Price (₱)</label>
+            <input
+              name="price"
+              type="number"
+              step="0.01"
+              required
+              placeholder="0.00"
+              className="w-full h-12 px-4 rounded-xl border border-stone-300 focus:ring-2 focus:ring-amber-600 outline-none text-stone-900 font-semibold"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-bold uppercase text-stone-600 mb-1">Starting Stock</label>
+            <input
+              name="stockQuantity"
+              type="number"
+              required
+              placeholder="0"
+              className="w-full h-12 px-4 rounded-xl border border-stone-300 focus:ring-2 focus:ring-amber-600 outline-none text-stone-900"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold uppercase text-stone-600 mb-1">Low Stock Limit</label>
+            <input
+              name="lowStockThreshold"
+              type="number"
+              defaultValue={5}
+              required
+              placeholder="5"
+              className="w-full h-12 px-4 rounded-xl border border-stone-300 focus:ring-2 focus:ring-amber-600 outline-none text-stone-900"
+            />
+          </div>
+        </div>
+
+        <div className="pt-2 flex gap-3">
+          <Link
+            href="/products"
+            className="w-1/2 h-12 bg-stone-100 text-stone-700 font-semibold rounded-xl flex items-center justify-center"
+          >
+            Cancel
+          </Link>
+          <button type="submit" className="w-1/2 h-12 bg-amber-600 text-white font-semibold rounded-xl shadow-sm">
+            Save Product
+          </button>
+        </div>
       </form>
     </div>
   );
