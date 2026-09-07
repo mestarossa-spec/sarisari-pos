@@ -15,10 +15,5 @@ export default async function NewSalePage() {
     stockQuantity: p.stockQuantity,
   }));
 
-  return (
-    <div className="p-8">
-      <h1 className="mb-4 text-xl font-semibold">New Sale</h1>
-      <SaleForm products={serializedProducts} />
-    </div>
-  );
+  return <SaleForm products={serializedProducts} />;
 }
