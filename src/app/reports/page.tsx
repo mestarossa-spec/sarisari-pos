@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
 type Group = "day" | "week" | "month";
+type ProductTotals = { name: string; unit: string; quantity: number; revenue: number };
 
 const MANILA_OFFSET_MS = 8 * 60 * 60 * 1000;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -77,10 +78,7 @@ export default async function ReportsPage({
     CASH: { count: 0, total: 0 },
     GCASH: { count: 0, total: 0 },
   };
-  const byProduct = new Map
-    number,
-    { name: string; unit: string; quantity: number; revenue: number }
-  >();
+  const byProduct = new Map<number, ProductTotals>();
 
   for (const sale of sales) {
     const amount = Number(sale.totalAmount);
