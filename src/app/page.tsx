@@ -27,7 +27,7 @@ export default async function Home() {
         </span>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
         <Link
           href="/sales/new"
           className="h-20 bg-emerald-600 text-white p-4 rounded-2xl flex items-center justify-between shadow-sm active:scale-95 transition-transform"
@@ -57,6 +57,16 @@ export default async function Home() {
             <span className="text-base font-bold">Sales History</span>
           </div>
           <span className="text-2xl">📊</span>
+        </Link>
+        <Link
+          href="/reports"
+          className="h-20 bg-white border border-stone-200 text-stone-800 p-4 rounded-2xl flex items-center justify-between shadow-sm active:scale-95 transition-transform"
+        >
+          <div className="text-left">
+            <span className="block text-xs text-stone-500">Insights</span>
+            <span className="text-base font-bold">Reports</span>
+          </div>
+          <span className="text-2xl">📈</span>
         </Link>
       </div>
 
