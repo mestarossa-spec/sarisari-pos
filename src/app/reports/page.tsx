@@ -52,25 +52,27 @@ export default async function ReportsPage({
     params.group === "week" || params.group === "month" ? params.group : "day";
   const invalidRange = from > to;
 
-  const products = await prisma.product.findMany({
-    orderBy: { stockQuantity: "asc" },
-  });
+  const [products, sales] = await Promise.all([
+    prisma.product.findMany({
+      orderBy: { stockQuantity: "asc" },
+    }),
+    invalidRange
+      ? Promise.resolve([])
+      : prisma.sale.findMany({
+          where: {
+            createdAt: {
+              gte: new Date(`${from}T00:00:00+08:00`),
+              lte: new Date(`${to}T23:59:59.999+08:00`),
+            },
+          },
+          orderBy: { createdAt: "asc" },
+          include: { items: { include: { product: true } } },
+        }),
+  ]);
+
   const lowStockCount = products.filter(
     (p) => p.stockQuantity <= p.lowStockThreshold
   ).length;
-
-  const sales = invalidRange
-    ? []
-    : await prisma.sale.findMany({
-        where: {
-          createdAt: {
-            gte: new Date(`${from}T00:00:00+08:00`),
-            lte: new Date(`${to}T23:59:59.999+08:00`),
-          },
-        },
-        orderBy: { createdAt: "asc" },
-        include: { items: { include: { product: true } } },
-      });
 
   let totalRevenue = 0;
   const byPeriod = new Map<string, { count: number; total: number }>();

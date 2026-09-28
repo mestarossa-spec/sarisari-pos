@@ -1,13 +1,32 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
-export default async function SalesHistoryPage() {
-  const sales = await prisma.sale.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      items: { include: { product: true } },
-    },
-  });
+const PAGE_SIZE = 20;
+
+export default async function SalesHistoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const params = await searchParams;
+  const requested = parseInt(params.page ?? "1", 10);
+  const page = Number.isNaN(requested) || requested < 1 ? 1 : requested;
+
+  const [totalSales, sales] = await Promise.all([
+    prisma.sale.count(),
+    prisma.sale.findMany({
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+      include: {
+        items: { include: { product: true } },
+      },
+    }),
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(totalSales / PAGE_SIZE));
+  const hasPrev = page > 1;
+  const hasNext = page < totalPages;
 
   return (
     <div className="min-h-screen bg-stone-50 p-4 max-w-2xl mx-auto space-y-4">
@@ -16,8 +35,17 @@ export default async function SalesHistoryPage() {
         <h1 className="text-xl font-bold text-stone-900">Sales History</h1>
       </div>
 
-      {sales.length === 0 && (
+      {totalSales === 0 && (
         <p className="text-sm text-stone-400">No sales recorded yet.</p>
+      )}
+
+      {totalSales > 0 && sales.length === 0 && (
+        <p className="text-sm text-stone-400">
+          No sales on this page.{" "}
+          <Link href="/sales" className="text-amber-700 font-semibold underline">
+            Back to the first page
+          </Link>
+        </p>
       )}
 
       <div className="space-y-3">
@@ -39,6 +67,7 @@ export default async function SalesHistoryPage() {
                     {sale.createdAt.toLocaleString("en-PH", {
                       dateStyle: "medium",
                       timeStyle: "short",
+                      timeZone: "Asia/Manila",
                     })}
                   </span>
                 </div>
@@ -71,6 +100,34 @@ export default async function SalesHistoryPage() {
           </details>
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-2">
+          {hasPrev ? (
+            <Link
+              href={`/sales?page=${page - 1}`}
+              className="h-10 px-4 bg-white border border-stone-200 text-stone-800 font-semibold text-sm rounded-xl flex items-center shadow-sm"
+            >
+              ← Newer
+            </Link>
+          ) : (
+            <span />
+          )}
+          <span className="text-xs text-stone-500">
+            Page {page} of {totalPages}
+          </span>
+          {hasNext ? (
+            <Link
+              href={`/sales?page=${page + 1}`}
+              className="h-10 px-4 bg-white border border-stone-200 text-stone-800 font-semibold text-sm rounded-xl flex items-center shadow-sm"
+            >
+              Older →
+            </Link>
+          ) : (
+            <span />
+          )}
+        </div>
+      )}
     </div>
   );
 }

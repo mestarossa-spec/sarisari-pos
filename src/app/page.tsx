@@ -3,6 +3,13 @@ import { prisma } from "@/lib/prisma";
 
 export default async function Home() {
   const allProducts = await prisma.product.findMany({
+    select: {
+      id: true,
+      name: true,
+      unit: true,
+      stockQuantity: true,
+      lowStockThreshold: true,
+    },
     orderBy: { stockQuantity: "asc" },
   });
   const lowStockProducts = allProducts.filter(
@@ -13,6 +20,7 @@ export default async function Home() {
     weekday: "long",
     month: "short",
     day: "numeric",
+    timeZone: "Asia/Manila",
   });
 
   return (
